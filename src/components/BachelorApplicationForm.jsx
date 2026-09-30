@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
 import { Turnstile } from '@marsidev/react-turnstile'
-import { uploadPhotos } from '/src/services/photoUploadService.js'
+import { uploadPhotos } from '../services/photoUploadService.js'
+import { submitApplication } from '../services/applicationService.js'
 
 const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
 const photoSlots = ['fullBodyPhoto', 'photo2', 'photo3', 'photo4']
+const textFields = ['name', 'age', 'location', 'email', 'phone', 'social']
 const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const maxPhotoBytes = 25 * 1024 * 1024
 
@@ -12,6 +14,7 @@ function BachelorApplicationForm() {
   const submissionRef = useRef(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState('')
 
   async function handleSubmit(event) {
@@ -47,64 +50,46 @@ function BachelorApplicationForm() {
       }
     }
 
-    // Capture the application details before starting the asynchronous uploads.
-    const applicationData = new FormData(form)
-    for (const slot of photoSlots) applicationData.delete(slot)
-    applicationData.delete('cf-turnstile-response')
+    const formData = new FormData(form)
+    const fields = Object.fromEntries(
+      textFields.map((name) => [name, String(formData.get(name) ?? '')]),
+    )
 
     submissionRef.current = true
     setIsSubmitting(true)
-    let emailForm
 
     try {
-      const { applicationId, objectNames } = await uploadPhotos(photos, turnstileToken)
-
-      applicationData.set('applicationId', applicationId)
-      applicationData.set(
-        'photoStoragePaths',
-        objectNames.map(({ slot, objectName }) => `${slot}: ${objectName}`).join('\n'),
+      const { submissionToken } = await uploadPhotos(photos, turnstileToken)
+      await submitApplication(fields, submissionToken)
+      setIsSubmitted(true)
+    } catch (submitError) {
+      setError(
+        submitError instanceof Error
+          ? submitError.message
+          : 'Could not submit your application. Please try again.',
       )
-
-      // Submit text only to the existing email provider after every photo uploads.
-      emailForm = document.createElement('form')
-      emailForm.action = form.action
-      emailForm.method = 'POST'
-      emailForm.hidden = true
-
-      for (const [name, value] of applicationData.entries()) {
-        if (typeof value !== 'string') continue
-        const input = document.createElement('input')
-        input.type = 'hidden'
-        input.name = name
-        input.value = value
-        emailForm.appendChild(input)
-      }
-
-      document.body.appendChild(emailForm)
-      HTMLFormElement.prototype.submit.call(emailForm)
-    } catch (uploadError) {
-      emailForm?.remove()
-      setError(uploadError instanceof Error ? uploadError.message : 'Could not submit your application. Please try again.')
       submissionRef.current = false
-      setIsSubmitting(false)
       setTurnstileToken('')
       turnstileRef.current?.reset()
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
-  return (
-    <form
-      action="https://formsubmit.co/transforminglove26@gmail.com"
-      method="POST"
-      onSubmit={handleSubmit}
-      aria-busy={isSubmitting}
-    >
-      <input
-        type="hidden"
-        name="_subject"
-        value="New Transforming Love bachelor application"
-      />
+  if (isSubmitted) {
+    return (
+      <div role="status">
+        <h2>Application received</h2>
+        <p>
+          Thank you for applying to Transforming Love. If you're selected, we'll
+          reach out by email about a video submission.
+        </p>
+      </div>
+    )
+  }
 
+  return (
+    <form onSubmit={handleSubmit} aria-busy={isSubmitting} noValidate={false}>
       <label htmlFor="name">Full name</label>
       <input id="name" name="name" type="text" required />
 

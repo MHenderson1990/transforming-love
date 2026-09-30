@@ -42,9 +42,6 @@ export async function uploadPhotos(photos, turnstileToken) {
 
   return {
     applicationId: policyResult.applicationId,
-    objectNames: policyResult.uploads.map(({ slot, objectName }) => ({
-      slot,
-      objectName,
-    })),
+    submissionToken: policyResult.submissionToken,
   }
 }
