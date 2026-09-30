@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { createPhotoUploadUrl } from '../repositories/photoRepository.js'
+import { createSubmissionToken } from './submissionTokenService.js'
 
 const allowedTypes = {
   'image/jpeg': 'jpg',
@@ -63,5 +64,10 @@ export async function preparePhotoUploads(photos) {
     }),
   )
 
-  return { applicationId, uploads }
+  const submissionToken = createSubmissionToken(
+    applicationId,
+    uploads.map(({ slot, objectName }) => `${slot}: ${objectName}`),
+  )
+
+  return { applicationId, uploads, submissionToken }
 }

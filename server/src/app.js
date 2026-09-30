@@ -1,6 +1,7 @@
 import express from 'express'
 import cors from 'cors'
 import photoRoutes from './routes/photoRoutes.js'
+import applicationRoutes from './routes/applicationRoutes.js'
 
 const app = express()
 const port = process.env.PORT || 8080
@@ -13,6 +14,7 @@ app.get('/health', (req, res) => {
 })
 
 app.use('/api/photos', photoRoutes)
+app.use('/api/applications', applicationRoutes)
 
 app.listen(port, () => {
   console.log(`Upload service running on port ${port}`)
