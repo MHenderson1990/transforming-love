@@ -4,7 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --env-file=.env src/app.js"
+    "start": "node src/app.js",
+    "dev": "node --env-file=.env src/app.js"
+  },
+  "engines": {
+    "node": ">=20.6"
   },
   "dependencies": {
     "@google-cloud/storage": "^8.2.0",

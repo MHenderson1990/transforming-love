@@ -6,8 +6,14 @@ import applicationRoutes from './routes/applicationRoutes.js'
 const app = express()
 const port = process.env.PORT || 8080
 
-app.use(cors({ origin: 'http://localhost:5173' }))
-app.use(express.json())
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.set('trust proxy', true)
+app.use(cors({ origin: allowedOrigins }))
+app.use(express.json({ limit: '50kb' }))
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
