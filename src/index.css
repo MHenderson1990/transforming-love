@@ -1,11 +1,48 @@
 :root {
-  font-family: Arial, sans-serif;
-  color: #ffffff;
-  background: #10134b;
+  --ink: #05060d;
+  --night: #03040a;
+  --navy: #0b1437;
+  --mint: #b9f6d6;
+  --periwinkle: #8fb0ff;
+  --hot-pink: #ff5fae;
+  --white: #ffffff;
+
+  --flyer-gradient: linear-gradient(
+    90deg,
+    #03040a 0%,
+    #0f2a5c 28%,
+    #1b4a8a 50%,
+    #8a6bb0 80%,
+    #ea8cc6 100%
+  );
+  --spotlight-gradient: radial-gradient(
+    ellipse 90% 45% at 50% 30%,
+    #02030c 0%,
+    #0c1250 40%,
+    #1b1f7a 60%,
+    #5a3f98 85%,
+    #d985c0 100%
+  );
+  --mint-blue: linear-gradient(90deg, var(--mint), var(--periwinkle));
+  --mint-pink: linear-gradient(90deg, var(--mint), var(--hot-pink));
+  --pink-blue: linear-gradient(90deg, var(--hot-pink), var(--periwinkle));
+
+  --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
+  --font-label: 'Oswald', 'Arial Narrow', sans-serif;
+  --font-body: 'Playfair Display', Georgia, serif;
+  --font-script: 'Yellowtail', cursive;
+
+  font-family: var(--font-body);
+  color: var(--white);
+  background: var(--night);
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -16,4 +53,41 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+.gradient-text {
+  background: var(--mint-blue);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.gradient-text--pink {
+  background: var(--mint-pink);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
 }
