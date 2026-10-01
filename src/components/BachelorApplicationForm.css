@@ -63,10 +63,12 @@
 .form-input::-webkit-inner-spin-button {
   margin: 0;
   -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-input[type='number'] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 /* Photos */
