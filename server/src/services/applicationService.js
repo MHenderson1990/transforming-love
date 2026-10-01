@@ -1,5 +1,10 @@
 import { sendApplicationEmail } from './emailService.js'
 import { verifySubmissionToken } from './submissionTokenService.js'
+import {
+  createPhotoReadUrl,
+  getPhotoFolderConsoleUrl,
+  photoExists,
+} from '../repositories/photoRepository.js'
 
 export class ApplicationInputError extends Error {}
 
@@ -45,6 +50,21 @@ export async function submitApplication(body) {
   if (!emailPattern.test(application.email)) {
     throw new ApplicationInputError('Please enter a valid email address.')
   }
+
+  application.photos = await Promise.all(
+    photoPaths.map(async (entry) => {
+      const [slot, objectName] = entry.split(': ')
+
+      if (!(await photoExists(objectName))) {
+        throw new ApplicationInputError(
+          'Your photos did not finish uploading. Please submit again.',
+        )
+      }
+
+      return { slot, objectName, url: await createPhotoReadUrl(objectName) }
+    }),
+  )
+  application.photoFolderUrl = getPhotoFolderConsoleUrl(applicationId)
 
   usedApplicationIds.add(applicationId)
 
