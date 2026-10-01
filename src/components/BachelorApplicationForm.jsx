@@ -2,20 +2,34 @@ import { useRef, useState } from 'react'
 import { Turnstile } from '@marsidev/react-turnstile'
 import { uploadPhotos } from '../services/photoUploadService.js'
 import { submitApplication } from '../services/applicationService.js'
+import './BachelorApplicationForm.css'
 
 const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
-const photoSlots = ['fullBodyPhoto', 'photo2', 'photo3', 'photo4']
+const photoFields = [
+  { slot: 'fullBodyPhoto', label: 'Full-body', required: true },
+  { slot: 'photo2', label: 'Photo 2', required: true },
+  { slot: 'photo3', label: 'Photo 3', required: true },
+  { slot: 'photo4', label: 'Photo 4', required: false },
+]
+const photoSlots = photoFields.map(({ slot }) => slot)
 const textFields = ['name', 'age', 'location', 'email', 'phone', 'social']
 const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const acceptTypes = 'image/jpeg,image/png,image/webp'
 const maxPhotoBytes = 25 * 1024 * 1024
 
 function BachelorApplicationForm() {
   const turnstileRef = useRef(null)
   const submissionRef = useRef(false)
   const [turnstileToken, setTurnstileToken] = useState('')
+  const [fileNames, setFileNames] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState('')
+
+  function handleFileChange(slot, event) {
+    const file = event.target.files?.[0]
+    setFileNames((current) => ({ ...current, [slot]: file?.name ?? '' }))
+  }
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -23,6 +37,11 @@ function BachelorApplicationForm() {
 
     const form = event.currentTarget
     setError('')
+
+    if (!form.elements.namedItem('consent')?.checked) {
+      setError('Please agree to be contacted before submitting.')
+      return
+    }
 
     if (!turnstileToken) {
       setError('Please complete the verification before submitting.')
@@ -78,55 +97,90 @@ function BachelorApplicationForm() {
 
   if (isSubmitted) {
     return (
-      <div role="status">
-        <h2>Application received</h2>
+      <div className="form-card form-success" role="status">
+        <h2 className="form-success__title">Application received</h2>
         <p>
-          Thank you for applying to Transforming Love. If you're selected, we'll
-          reach out by email about a video submission.
+          Thank you for applying to Transforming Love. If you're selected,
+          we'll reach out by email about a video submission.
         </p>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} aria-busy={isSubmitting} noValidate={false}>
-      <label htmlFor="name">Full name</label>
-      <input id="name" name="name" type="text" required />
+    <form className="form-card" onSubmit={handleSubmit} aria-busy={isSubmitting}>
+      <div className="form-field">
+        <label className="form-label" htmlFor="name">Full name</label>
+        <input className="form-input" id="name" name="name" type="text" autoComplete="name" required />
+      </div>
 
-      <label htmlFor="age">Age</label>
-      <input id="age" name="age" type="number" min="25" max="40" required />
+      <div className="form-row">
+        <div className="form-field">
+          <label className="form-label" htmlFor="age">Age</label>
+          <input className="form-input" id="age" name="age" type="number" min="25" max="40" inputMode="numeric" required />
+        </div>
+        <div className="form-field">
+          <label className="form-label" htmlFor="phone">Phone</label>
+          <input className="form-input" id="phone" name="phone" type="tel" autoComplete="tel" required />
+        </div>
+      </div>
 
-      <label htmlFor="location">City and state</label>
-      <input id="location" name="location" type="text" required />
+      <div className="form-field">
+        <label className="form-label" htmlFor="location">City and state</label>
+        <input className="form-input" id="location" name="location" type="text" autoComplete="address-level2" required />
+      </div>
 
-      <label htmlFor="email">Email</label>
-      <input id="email" name="email" type="email" required />
+      <div className="form-field">
+        <label className="form-label" htmlFor="email">Email</label>
+        <input className="form-input" id="email" name="email" type="email" autoComplete="email" required />
+      </div>
 
-      <label htmlFor="phone">Phone number</label>
-      <input id="phone" name="phone" type="tel" required />
+      <div className="form-field">
+        <label className="form-label" htmlFor="social">Social media links</label>
+        <textarea className="form-input form-input--textarea" id="social" name="social" rows="3" />
+      </div>
 
-      <label htmlFor="social">Social media links</label>
-      <textarea id="social" name="social" rows="3" />
+      <fieldset className="form-photos">
+        <legend className="form-label">Photos · JPEG, PNG, or WebP, up to 25 MB</legend>
+        <div className="form-photos__grid">
+          {photoFields.map(({ slot, label, required }) => (
+            <label
+              key={slot}
+              className={`photo-tile${required ? '' : ' photo-tile--optional'}${fileNames[slot] ? ' photo-tile--filled' : ''}`}
+            >
+              <span className="photo-tile__label">
+                {label}
+                {required && ' *'}
+              </span>
+              <span className="photo-tile__hint">
+                {fileNames[slot] || (required ? 'Tap to upload' : 'Optional')}
+              </span>
+              <input
+                className="visually-hidden"
+                name={slot}
+                type="file"
+                accept={acceptTypes}
+                required={required}
+                onChange={(event) => handleFileChange(slot, event)}
+              />
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
-      <p>Upload three or four JPEG, PNG, or WebP photos, up to 25 MB each.</p>
-
-      <label htmlFor="fullBodyPhoto">Full-body photo</label>
-      <input id="fullBodyPhoto" name="fullBodyPhoto" type="file" accept="image/jpeg,image/png,image/webp" required />
-
-      <label htmlFor="photo2">Second photo</label>
-      <input id="photo2" name="photo2" type="file" accept="image/jpeg,image/png,image/webp" required />
-
-      <label htmlFor="photo3">Third photo</label>
-      <input id="photo3" name="photo3" type="file" accept="image/jpeg,image/png,image/webp" required />
-
-      <label htmlFor="photo4">Fourth photo (optional)</label>
-      <input id="photo4" name="photo4" type="file" accept="image/jpeg,image/png,image/webp" />
+      <label className="form-consent">
+        <input name="consent" type="checkbox" required />
+        <span>
+          I agree to be contacted by the Transforming Love casting team, and I
+          understand my information will be kept private.
+        </span>
+      </label>
 
       {siteKey ? (
         <Turnstile
           ref={turnstileRef}
           siteKey={siteKey}
-          options={{ responseField: false }}
+          options={{ responseField: false, theme: 'dark' }}
           onSuccess={(token) => {
             setTurnstileToken(token)
             setError('')
@@ -139,12 +193,14 @@ function BachelorApplicationForm() {
           }}
         />
       ) : (
-        <p role="alert">Verification is unavailable. The Turnstile site key is missing.</p>
+        <p className="form-error" role="alert">
+          Verification is unavailable. The Turnstile site key is missing.
+        </p>
       )}
 
-      {error && <p role="alert">{error}</p>}
+      {error && <p className="form-error" role="alert">{error}</p>}
 
-      <button type="submit" disabled={isSubmitting || !turnstileToken}>
+      <button className="form-submit" type="submit" disabled={isSubmitting || !turnstileToken}>
         {isSubmitting ? 'Uploading photos and submitting…' : 'Submit application'}
       </button>
     </form>
