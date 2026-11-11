@@ -23,7 +23,7 @@ function ApplicationPage() {
         <header className="apply__header">
           <h1 className="apply__heading">Bachelor application</h1>
           <p className="apply__intro">
-            Apply by November 15, 2026. Three photos are required, including
+            Apply by December 31, 2026. Three photos are required, including
             one full-body photo.
           </p>
         </header>

@@ -65,7 +65,7 @@ function HomePage() {
             <Link className="button" to="/apply">
               Apply now
             </Link>
-            <p className="home__closes">Applications close Nov 15, 2026</p>
+           <p className="home__closes">Applications close Dec 31, 2026</p>
           </div>
         </header>
 
@@ -126,7 +126,7 @@ function HomePage() {
 
           <div className="home__deadline">
             <span className="home__deadline-label">Deadline:</span>
-            <span className="home__deadline-date">15 November, 2026</span>
+            <span className="home__deadline-date">31 December, 2026</span>
           </div>
 
           <Link className="button" to="/apply">
